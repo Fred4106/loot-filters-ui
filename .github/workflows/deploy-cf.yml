@@ -5,6 +5,7 @@ on:
         branches: [main, '*']
         # Only run for specific users
         if: |
+            github.actor == 'fred4106' ||
             github.actor == 'kaqemeex' ||
             github.actor == 'typical-whack' ||
             github.actor == 'omniforce'
