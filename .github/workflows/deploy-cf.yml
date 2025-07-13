@@ -20,7 +20,7 @@ jobs:
             - name: Save Git SHA
               run: |
                   mkdir src
-                  echo '{"gitSha": "${{ github.sha }}"}' > src/build-info.json
+                  echo '{"gitSha": "${{ github.sha }}"}' >     packages/ui/src/build-info.json
             - name: Build
               run: npm run build
               env:
@@ -29,7 +29,7 @@ jobs:
               id: deployment
               uses: actions/upload-pages-artifact@v3
               with:
-                  path: dist/
+                  path: packages/ui/dist/
 
     deploy:
         needs: build
