@@ -1,16 +1,21 @@
-name: Deploy to GitHub Pages
+name: Deploy
 
 on:
     push:
-        branches:
-            - main
-
+        branches: [main, '*']
+        # Only run for specific users
+        if: |
+            github.actor == 'kaqemeex' ||
+            github.actor == 'Fred4106' ||
+            github.actor == 'typical-whack' ||
+            github.actor == 'omniforce'
 jobs:
-    build:
+    buildAndDeploy:
         runs-on: ubuntu-latest
+        environment:
+            name: actions
         steps:
-            - name: Checkout repository
-              uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - name: Setup Node.js
               uses: actions/setup-node@v3
               with:
@@ -19,30 +24,20 @@ jobs:
               run: npm install
             - name: Save Git SHA
               run: |
-                  mkdir src
-                  echo '{"gitSha": "${{ github.sha }}"}' >     packages/ui/src/build-info.json
+                  echo '{"gitSha": "${{ github.sha }}"}' > packages/ui/src/build-info.json
+            - name: Prettier Check
+              run: npm run prettier:check
             - name: Build
               run: npm run build
               env:
                   NODE_ENV: production
-            - name: Upload static files as artifact
-              id: deployment
-              uses: actions/upload-pages-artifact@v3
-              with:
-                  path: packages/ui/dist/
 
-    deploy:
-        needs: build
-        # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-        permissions:
-            pages: write # to deploy to Pages
-            id-token: write # to verify the deployment originates from an appropriate source
-        # Deploy to the github-pages environment
-        environment:
-            name: github-pages
-            url: ${{ steps.deployment.outputs.page_url }}
-        runs-on: ubuntu-latest
-        steps:
-            - name: Deploy to GitHub Pages
-              id: deployment
-              uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
+            - name: Deploy 🚀
+              uses: JamesIves/github-pages-deploy-action@v4
+              with:
+                folder: packages/ui/dist 
+                clean: true
+                ssh-key: ${{ secrets.DEPLOY_KEY }}
+                # clean-exclude: |
+                #   special-file.txt
+                #   some/*.txt
