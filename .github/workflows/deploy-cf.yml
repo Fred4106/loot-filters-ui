@@ -1,21 +1,16 @@
-name: Deploy
+name: Deploy to GitHub Pages
 
 on:
     push:
-        branches: [main, '*']
-        # Only run for specific users
-        if: |
-            github.actor == 'fred4106' ||
-            github.actor == 'kaqemeex' ||
-            github.actor == 'typical-whack' ||
-            github.actor == 'omniforce'
+        branches:
+            - main
+
 jobs:
-    buildAndDeploy:
+    build:
         runs-on: ubuntu-latest
-        environment:
-            name: actions
         steps:
-            - uses: actions/checkout@v4
+            - name: Checkout repository
+              uses: actions/checkout@v3
             - name: Setup Node.js
               uses: actions/setup-node@v3
               with:
@@ -24,16 +19,29 @@ jobs:
               run: npm install
             - name: Save Git SHA
               run: |
-                  echo '{"gitSha": "${{ github.sha }}"}' > packages/ui/src/build-info.json
-            - name: Prettier Check
-              run: npm run prettier:check
+                  echo '{"gitSha": "${{ github.sha }}"}' > src/build-info.json
             - name: Build
               run: npm run build
               env:
                   NODE_ENV: production
-            - name: Deploy
-              uses: peaceiris/actions-gh-pages@v3
-              if: github.ref == 'refs/heads/main'
+            - name: Upload static files as artifact
+              id: deployment
+              uses: actions/upload-pages-artifact@v3
               with:
-                 github_token: ${{ secrets.GITHUB_TOKEN }}
-                 publish_dir: ./packages/ui/dist
+                  path: dist/
+
+    deploy:
+        needs: build
+        # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+        permissions:
+            pages: write # to deploy to Pages
+            id-token: write # to verify the deployment originates from an appropriate source
+        # Deploy to the github-pages environment
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
