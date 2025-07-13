@@ -2,13 +2,10 @@ name: Deploy
 
 on:
     push:
-        branches: [main, '*']
-        # Only run for specific users
-        if: |
-            github.actor == 'kaqemeex' ||
-            github.actor == 'Fred4106' ||
-            github.actor == 'typical-whack' ||
-            github.actor == 'omniforce'
+        branches: 
+         - main
+permissions:
+  contents: write
 jobs:
     buildAndDeploy:
         runs-on: ubuntu-latest
@@ -35,9 +32,5 @@ jobs:
             - name: Deploy 🚀
               uses: JamesIves/github-pages-deploy-action@v4
               with:
-                folder: packages/ui/dist 
-                clean: true
+                folder: 'packages/ui/dist'
                 ssh-key: ${{ secrets.DEPLOY_KEY }}
-                # clean-exclude: |
-                #   special-file.txt
-                #   some/*.txt
